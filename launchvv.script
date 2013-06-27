@@ -1,12 +1,47 @@
 on open argv
+	do shell script "logger -s launchvv2 started"
+	
 	set debug to true
 	set log_file to "/tmp/droplet.log"
 	
-	set the_command to "open -a RemoteViewer --args --spice-ca-file=/Users/brian/yount-rhev-ca.crt " & POSIX path of item 1 of argv
-	-- set the_command to the_command & " | tee -a " & log_file
-	-- 	set the_command to the_command & 
 	
-	do shell script "logger -s launchvv2 started"
+	(*
+	first see if there is a CA crt
+	need to find out what the RHEV-M server is - parse it out the .vv file. it is in as the following
+	URI:http://virtville.usersys.redhat.com:80/ca.crt\n\n
+	
+	will call the split function twice, once with the expected beginning sequence and once with the end and should end up with just the hostname of the RHEVM server
+	
+	set myArray to my theSplit(myTestString, "URI:http://")
+	
+	*)
+	set vvfile to POSIX path of item 1 of argv
+	set vvcontents to read POSIX file vvfile
+	
+	
+	set myArray to my theSplit(vvcontents, "URI:http://")
+	set rhevm to item 1 of my theSplit(item 2 of myArray, ":")
+	
+	do shell script "logger -s RHEV-M host is " & rhevm
+	
+	set crtexists to false
+	
+	--see if there is a ca.crt in /tmp
+	set msg to false
+	tell application "Finder" to if exists "/tmp/" & rhevm & ".crt" as POSIX file then set msg to true
+	
+	--if not download the ca crt
+	if not msg then
+		do shell script "logger -s missing CA cert"
+		set certurl to "http://" & rhevm & "/ca.crt"
+		do shell script "logger -s CA cert URL is: " & certurl
+		set curl_command to "curl " & certurl & " -o " & "/tmp/" & rhevm & ".crt"
+		do shell script curl_command
+	end if
+	
+	
+	set the_command to "open -a RemoteViewer --args --spice-ca-file=/tmp/" & rhevm & ".crt " & POSIX path of item 1 of argv
+	do shell script "logger -s  ready to execute: " & the_command
 	
 	if debug then
 		tell application "Terminal"
@@ -21,17 +56,20 @@ on open argv
 	end if
 	
 	
-	-- --args --spice-ca-file=/Users/brian/yount-rhev-ca.crt "
-	
-	-- & item 1 in argv
-	
-	-- tell application "RemoteViewer" to activate
-	
-	-- do shell script launchvar
-	
-	-- tell application "AppleScript Runner" to display dialog "I ran"
-	
 end open
 
--- do shell script "open -a RemoteViewer --args --spice-ca-file=/Users/brian/yount-rhev-ca.crt /Users/brian/console.vv" 
+
+on theSplit(theString, theDelimiter)
+	-- save delimiters to restore old settings
+	set oldDelimiters to AppleScript's text item delimiters
+	-- set delimiters to delimiter to be used
+	set AppleScript's text item delimiters to theDelimiter
+	-- create the array
+	set theArray to every text item of theString
+	-- restore the old setting
+	set AppleScript's text item delimiters to oldDelimiters
+	-- return the result
+	return theArray
+end theSplit
+
 
