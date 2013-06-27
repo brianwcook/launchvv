@@ -1,0 +1,37 @@
+on open argv
+	set debug to true
+	set log_file to "/tmp/droplet.log"
+	
+	set the_command to "open -a RemoteViewer --args --spice-ca-file=/Users/brian/yount-rhev-ca.crt " & POSIX path of item 1 of argv
+	-- set the_command to the_command & " | tee -a " & log_file
+	-- 	set the_command to the_command & 
+	
+	do shell script "logger -s launchvv2 started"
+	
+	if debug then
+		tell application "Terminal"
+			try
+				do script the_command
+			end try
+		end tell
+	else
+		try
+			do shell script the_command
+		end try
+	end if
+	
+	
+	-- --args --spice-ca-file=/Users/brian/yount-rhev-ca.crt "
+	
+	-- & item 1 in argv
+	
+	-- tell application "RemoteViewer" to activate
+	
+	-- do shell script launchvar
+	
+	-- tell application "AppleScript Runner" to display dialog "I ran"
+	
+end open
+
+-- do shell script "open -a RemoteViewer --args --spice-ca-file=/Users/brian/yount-rhev-ca.crt /Users/brian/console.vv" 
+
