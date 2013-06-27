@@ -4,7 +4,7 @@ launchvv
 helper app for OS X to launch virt-viewer files from a browser
 
 
-launchvv.script is an applescript application that enables seamless launching of spice consoles from RHEV 3.2 +
+launchvv.script is an applescript application that enables seamless launching of spice consoles from RHEV 3.2 +.
 
 What it actually does:
 it reads the vv file received from RHEV
